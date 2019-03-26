@@ -12,7 +12,7 @@ case class Part1(outerSurface: Surface, zMin: Double, zMax: Double) extends Part
     def point(z: Double, a: Double) = {
       val r = outerSurface(z, a)
 
-      (cos(a) * r, sin(a) * r, z)
+      Point(cos(a) * r, sin(a) * r, z)
     }
 
     val rows = MathUtil
@@ -27,14 +27,14 @@ case class Part1(outerSurface: Surface, zMin: Double, zMax: Double) extends Part
       .mapSlidingPairs(rows)({ (row1, row2) =>
         SeqUtil
           .mapCyclicSlidingPairs(row1.zip(row2))({ case ((p1, p2), (p3, p4)) =>
-            Seq(Seq(p1, p2, p4), Seq(p1, p4, p3))
+            Seq(Face(p1, p2, p4), Face(p1, p4, p3))
           })
           .flatten
       })
       .flatten
 
-    def endFaces(z: Double, row: Seq[(Double, Double, Double)]) =
-      SeqUtil.mapCyclicSlidingPairs(row)((p1, p2) => Seq(p1, p2, (0d, 0d, z)))
+    def endFaces(z: Double, row: Seq[Point]) =
+      SeqUtil.mapCyclicSlidingPairs(row)((p1, p2) => Face(p1, p2, Point(0, 0, z)))
 
     Polyhedron(verticalFaces ++ endFaces(zMin, rows.head) ++ endFaces(zMax, rows.last))
 
@@ -46,7 +46,7 @@ case class Part2(outerSurface: Surface, innerSurface: Surface, zMin: Double, zMa
     def point(surface: Surface, z: Double, a: Double) = {
       val r = surface(z, a)
 
-      (cos(a) * r, sin(a) * r, z)
+      Point(cos(a) * r, sin(a) * r, z)
     }
 
     val outerRows = MathUtil
@@ -69,7 +69,7 @@ case class Part2(outerSurface: Surface, innerSurface: Surface, zMin: Double, zMa
       .mapCyclicSlidingPairs(outerRows ++ innerRows.reverse)({ (row1, row2) =>
         SeqUtil
           .mapCyclicSlidingPairs(row1.zip(row2))({ case ((p1, p2), (p3, p4)) =>
-            Seq(Seq(p1, p2, p4), Seq(p1, p4, p3))
+            Seq(Face(p1, p2, p4), Face(p1, p4, p3))
           })
           .flatten
       })

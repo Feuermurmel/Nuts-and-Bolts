@@ -98,7 +98,6 @@ object Main extends App {
       isoThread(size, pitch).radialShift(offset)
 
     def screw(length: Double) = {
-      val length: Double = 20
       val studHeight: Double = 0.5
 
       val thread = intersection(
@@ -141,11 +140,11 @@ object Main extends App {
 
   def main(): Unit = {
     val m10 = Screw(10, 1.5, 16)
-
     writePart(m10.screw(20), "M10-screw")
     writePart(m10.nut, "M10-nut")
 
     val m24 = Screw(24, 3, 36)
+    writePart(m24.screw(50), "M24-screw")
     writePart(m24.nut, "M24-nut")
 
     Seq("./openscad-to-stl.sh").!

@@ -1,23 +1,38 @@
 import better.files.File
 
-case class Polyhedron(faces: Seq[Seq[(Double, Double, Double)]]) {
+case class Point(x: Double, y: Double, z: Double)
+
+case class Face(p1: Point, p2: Point, p3: Point)
+
+case class Polyhedron(faces: Seq[Face]) {
+  import Polyhedron._
+
   def asOpenSCADExpression = {
-    val points = faces.flatten.distinct.sorted
+    val points = faces.flatMap(facePoints).distinct.sortBy(pointComponents)
     val indexByPoint = points.zipWithIndex.toMap
 
     def arrayStr[A](parts: Seq[A])(toString: A => String) =
       s"[${parts.map(toString).mkString(", ")}]"
 
-    val pointsStr = arrayStr(points)({ case (x, y, z) => arrayStr(Seq(x, y, z))(_.toString) })
-    val facesStr = arrayStr(faces)(face => arrayStr(face)(indexByPoint(_).toString))
+    val pointsStr = arrayStr(points)(p => arrayStr(pointComponents(p))(_.toString))
+    val facesStr = arrayStr(faces)(f => arrayStr(facePoints(f))(indexByPoint(_).toString))
 
     s"polyhedron(points = $pointsStr, faces = $facesStr)"
   }
 
   def writeToOpenSCADFile(path: File) = {
+    val parentDir = path.parent
+    val tempPath = parentDir / (path.name + '~')
     val fileContent = s"$asOpenSCADExpression;\n"
 
-    path.parent.createDirectories()
-    path.write(fileContent)
+    parentDir.createDirectories()
+    tempPath.write(fileContent)
+    tempPath.moveTo(path, overwrite = true)
   }
+}
+
+object Polyhedron {
+  def facePoints(face: Face) = Seq(face.p1, face.p2, face.p3)
+
+  def pointComponents(point: Point) = Seq(point.x, point.y, point.z)
 }
