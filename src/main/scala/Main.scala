@@ -10,12 +10,11 @@ object Main extends App {
   def cone(z1: Double, z2: Double, r1: Double, r2: Double) =
     Surface((z, _) => (z - z1) / (z2 - z1) * (r2 - r1) + r1)
 
-  def piecewiseSurface(pieces: (Surface, Double)*) =
-    Surface({ (z, a) =>
-      val (surface, _) = pieces.dropWhile({ case (_, stop) => stop < z }).headOption.getOrElse(pieces.head)
+  def switchSurface(surface1: Surface, surface2: Surface, height: Double) =
+    Surface((z, a) => (if (z < height) surface1 else surface2)(z, a))
 
-      surface(z, a)
-    })
+  def piecewiseSurface(pieces: (Surface, Double)*) =
+    pieces.init.foldRight(pieces.last._1)({ case ((surface, height), result) => switchSurface(surface, result, height) })
 
   def stack(pieces: (Surface, Double)*) = {
     var piecewisePieces = Seq[(Surface, Double)]()
@@ -102,15 +101,11 @@ object Main extends App {
 
       val thread = intersection(
         threadSurface(-tolerance / 2),
-        cone(0, threadChamfer, radius - threadChamfer, radius),
         cone(length, length - 0.5, radius - 0.5, radius))
 
-      val stud = cone(0, 1, radius - 0.5, radius - 0.5)
-
       val surface = stack(
-        (thread, length),
-        (stud, studHeight),
-        (headSurface, headHeight))
+        (headSurface, headHeight),
+        (union(thread, cone(0, nutChamfer, radius, radius - nutChamfer)), length))
 
       Part1(surface, 0, length + studHeight + headHeight)
     }
