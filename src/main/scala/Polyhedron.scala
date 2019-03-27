@@ -20,14 +20,12 @@ case class Polyhedron(faces: Seq[Face]) {
     s"polyhedron(points = $pointsStr, faces = $facesStr)"
   }
 
-  def writeToOpenSCADFile(path: File) = {
-    val parentDir = path.parent
-    val tempPath = parentDir / (path.name + '~')
+  def writeToOpenSCADFile(path: File): Unit = {
     val fileContent = s"$asOpenSCADExpression;\n"
 
-    parentDir.createDirectories()
-    tempPath.write(fileContent)
-    tempPath.moveTo(path, overwrite = true)
+    usingTemporaryFile(path.path) { tempPath =>
+      Files.write(tempPath, fileContent.getBytes(StandardCharsets.UTF_8))
+    }
   }
 }
 

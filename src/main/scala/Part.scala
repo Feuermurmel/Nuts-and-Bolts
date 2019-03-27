@@ -27,7 +27,7 @@ case class Part1(outerSurface: Surface, zMin: Double, zMax: Double) extends Part
       .mapSlidingPairs(rows)({ (row1, row2) =>
         SeqUtil
           .mapCyclicSlidingPairs(row1.zip(row2))({ case ((p1, p2), (p3, p4)) =>
-            Seq(Face(p1, p2, p4), Face(p1, p4, p3))
+            Seq(Face(p1, p3, p4), Face(p1, p4, p2))
           })
           .flatten
       })
@@ -36,8 +36,7 @@ case class Part1(outerSurface: Surface, zMin: Double, zMax: Double) extends Part
     def endFaces(z: Double, row: Seq[Point]) =
       SeqUtil.mapCyclicSlidingPairs(row)((p1, p2) => Face(p1, p2, Point(0, 0, z)))
 
-    Polyhedron(verticalFaces ++ endFaces(zMin, rows.head) ++ endFaces(zMax, rows.last))
-
+    Polyhedron(verticalFaces ++ endFaces(zMin, rows.head.reverse) ++ endFaces(zMax, rows.last))
   }
 }
 
@@ -69,7 +68,7 @@ case class Part2(outerSurface: Surface, innerSurface: Surface, zMin: Double, zMa
       .mapCyclicSlidingPairs(outerRows ++ innerRows.reverse)({ (row1, row2) =>
         SeqUtil
           .mapCyclicSlidingPairs(row1.zip(row2))({ case ((p1, p2), (p3, p4)) =>
-            Seq(Face(p1, p2, p4), Face(p1, p4, p3))
+            Seq(Face(p1, p3, p4), Face(p1, p4, p2))
           })
           .flatten
       })
