@@ -133,14 +133,21 @@ object Main extends App {
     write(0.1, 6 * 30, file"output")
   }
 
-  def main(): Unit = {
-    val m10 = Screw(10, 1.5, 16)
-    writePart(m10.screw(20), "M10-screw")
-    writePart(m10.nut, "M10-nut")
+  def writeNutAndScrew(name: String, screw: Screw, screwLength: Double): Unit = {
+    writePart(screw.nut, s"$name-nut")
+    writePart(screw.screw(screwLength), s"$name-screw")
+  }
 
-    val m24 = Screw(24, 3, 36)
-    writePart(m24.screw(50), "M24-screw")
-    writePart(m24.nut, "M24-nut")
+  def main(): Unit = {
+    writeNutAndScrew("M2", Screw(2, 0.4, 4), 8)
+    writeNutAndScrew("M3", Screw(3, 0.5, 5.5), 9)
+    writeNutAndScrew("M4", Screw(4, 0.7, 7), 10)
+    writeNutAndScrew("M5", Screw(5, 0.8, 8), 11)
+    writeNutAndScrew("M6", Screw(6, 1, 10), 12)
+    writeNutAndScrew("M8", Screw(8, 1.25, 13), 16)
+
+    writeNutAndScrew("M10", Screw(10, 1.5, 16), 20)
+    writeNutAndScrew("M24", Screw(24, 3, 36), 50)
 
     Seq("./openscad-to-stl.sh").!
   }
