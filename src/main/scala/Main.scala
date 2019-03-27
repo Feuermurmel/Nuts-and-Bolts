@@ -121,11 +121,11 @@ object Main extends App {
 
   def writePart(part: Part, name: String): Unit = {
     def write(zResolution: Double, aPoints: Int, dirPath: File): Unit = {
-      val path = dirPath / s"$name.scad"
+      val path = dirPath / s"$name.stl"
 
       println(s"Writing $path ...")
 
-      part.toPolyhedron(zResolution, tau / aPoints).writeToOpenSCADFile(path)
+      part.toPolyhedron(zResolution, tau / aPoints).writeToSTLFile(path)
     }
 
     write(0.5, 6 * 6, file"output/preview")
@@ -147,8 +147,6 @@ object Main extends App {
 
     writeNutAndScrew("M10", Screw(10, 1.5, 16), 20)
     writeNutAndScrew("M24", Screw(24, 3, 36), 50)
-
-    Seq("./openscad-to-stl.sh").!
   }
 
   main()

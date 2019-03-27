@@ -1,4 +1,10 @@
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.{ByteBuffer, ByteOrder}
+
 import better.files.File
+import util.PathUtil
+import util.PathUtil.usingTemporaryFile
 
 case class Point(x: Double, y: Double, z: Double)
 
@@ -8,7 +14,7 @@ case class Polyhedron(faces: Seq[Face]) {
   import Polyhedron._
 
   def asOpenSCADExpression = {
-    val points = faces.flatMap(facePoints).distinct.sortBy(pointComponents)
+    val points = faces.flatMap(facePoints).distinct.sortBy(x => pointComponents(x): Iterable[Double])
     val indexByPoint = points.zipWithIndex.toMap
 
     def arrayStr[A](parts: Seq[A])(toString: A => String) =
@@ -27,6 +33,47 @@ case class Polyhedron(faces: Seq[Face]) {
       Files.write(tempPath, fileContent.getBytes(StandardCharsets.UTF_8))
     }
   }
+
+  def writeToSTLFile(path: File): Unit =
+    PathUtil.writeUsingChannel(path.path) { channel =>
+      val buffer = ByteBuffer.allocate(80 + 4)
+      buffer.order(ByteOrder.LITTLE_ENDIAN)
+
+      import buffer.{putFloat, putInt, putShort}
+
+      def flush(): Unit = {
+        buffer.flip()
+        channel.write(buffer)
+        buffer.clear()
+      }
+
+      def skip(count: Int) =
+        buffer.position(buffer.position() + count)
+
+      // Skip unused header part.
+      skip(80)
+
+      // Face count.
+      putInt(faces.size)
+
+      flush()
+
+      faces.foreach({ face =>
+        // Skip the normal (leave all zeros).
+        skip(3 * 4)
+
+        facePoints(face).foreach({ point =>
+          pointComponents(point).foreach({ component =>
+            putFloat(component.toFloat)
+          })
+        })
+
+        // Attribute size.
+        putShort(0)
+
+        flush()
+      })
+    }
 }
 
 object Polyhedron {
