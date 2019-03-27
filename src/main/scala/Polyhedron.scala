@@ -1,8 +1,7 @@
 import java.nio.charset.StandardCharsets
-import java.nio.file.Files
+import java.nio.file.{Files, Path}
 import java.nio.{ByteBuffer, ByteOrder}
 
-import better.files.File
 import util.PathUtil
 import util.PathUtil.usingTemporaryFile
 
@@ -26,16 +25,16 @@ case class Polyhedron(faces: Seq[Face]) {
     s"polyhedron(points = $pointsStr, faces = $facesStr)"
   }
 
-  def writeToOpenSCADFile(path: File): Unit = {
+  def writeToOpenSCADFile(path: Path): Unit = {
     val fileContent = s"$asOpenSCADExpression;\n"
 
-    usingTemporaryFile(path.path) { tempPath =>
+    usingTemporaryFile(path) { tempPath =>
       Files.write(tempPath, fileContent.getBytes(StandardCharsets.UTF_8))
     }
   }
 
-  def writeToSTLFile(path: File): Unit =
-    PathUtil.writeUsingChannel(path.path) { channel =>
+  def writeToSTLFile(path: Path): Unit =
+    PathUtil.writeUsingChannel(path) { channel =>
       val buffer = ByteBuffer.allocate(80 + 4)
       buffer.order(ByteOrder.LITTLE_ENDIAN)
 

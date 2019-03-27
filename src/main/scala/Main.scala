@@ -1,10 +1,8 @@
 import java.lang.Math.sqrt
+import java.nio.file.{Path, Paths}
 
-import better.files._
 import util.MathUtil
 import util.MathUtil.tau
-
-import scala.sys.process._
 
 object Main extends App {
   def cone(z1: Double, z2: Double, r1: Double, r2: Double) =
@@ -120,16 +118,16 @@ object Main extends App {
   }
 
   def writePart(part: Part, name: String): Unit = {
-    def write(zResolution: Double, aPoints: Int, dirPath: File): Unit = {
-      val path = dirPath / s"$name.stl"
+    def write(zResolution: Double, aPoints: Int, dirPath: Path): Unit = {
+      val path = dirPath.resolve(s"$name.stl")
 
       println(s"Writing $path ...")
 
       part.toPolyhedron(zResolution, tau / aPoints).writeToSTLFile(path)
     }
 
-    write(0.5, 6 * 6, file"output/preview")
-    write(0.1, 6 * 30, file"output")
+    write(0.5, 6 * 6, Paths.get("output/preview"))
+    write(0.1, 6 * 30, Paths.get("output"))
   }
 
   def writeNutAndScrew(name: String, screw: Screw, screwLength: Double): Unit = {
