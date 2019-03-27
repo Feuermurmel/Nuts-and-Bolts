@@ -82,7 +82,8 @@ object Main extends App {
     val nutChamfer = headWidth * 0.03
     val nutInnerChamfer = size * 0.03
 
-    val threadChamfer = size * 0.15
+    // Chamfer used to taper the end of the screw into a circle on the pointy end of the threaded part and to insert a cone into which the thread fades near the screw's head.
+    val threadChamfer = pitch
 
     private def headSurface = {
       val headInnerRadius = headWidth / 2
@@ -97,17 +98,15 @@ object Main extends App {
       isoThread(size, pitch).radialShift(offset)
 
     def screw(length: Double) = {
-      val studHeight: Double = 0.5
-
       val thread = intersection(
         threadSurface(-tolerance / 2),
-        cone(length, length - 0.5, radius - 0.5, radius))
+        cone(length, length - threadChamfer, radius - threadChamfer, radius))
 
       val surface = stack(
         (headSurface, headHeight),
-        (union(thread, cone(0, nutChamfer, radius, radius - nutChamfer)), length))
+        (union(thread, cone(0, threadChamfer, radius, radius - threadChamfer)), length))
 
-      Part1(surface, 0, length + studHeight + headHeight)
+      Part1(surface, 0, length + headHeight)
     }
 
     def nut = {
