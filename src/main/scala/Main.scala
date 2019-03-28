@@ -144,6 +144,7 @@ object Main extends App {
     writeNutAndScrew("M8", Screw(8, 1.25, 13), 16)
 
     writeNutAndScrew("M10", Screw(10, 1.5, 16), 20)
+    writeNutAndScrew("M20", Screw(20, 2.5, 30), 40)
     writeNutAndScrew("M24", Screw(24, 3, 36), 50)
   }
 
