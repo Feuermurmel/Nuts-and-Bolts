@@ -1,18 +1,15 @@
 import java.lang.Math.sqrt
 import java.nio.file.{Path, Paths}
 
+import Surface.{cone, coneSegment, plane, select}
 import util.MathUtil
 import util.MathUtil.tau
 
 object Main extends App {
-  def cone(z1: Double, z2: Double, r1: Double, r2: Double) =
-    Surface((z, _) => (z - z1) / (z2 - z1) * (r2 - r1) + r1)
-
-  def switchSurface(surface1: Surface, surface2: Surface, height: Double) =
-    Surface((z, a) => (if (z < height) surface1 else surface2)(z, a))
-
   def piecewiseSurface(pieces: (Surface, Double)*) =
-    pieces.init.foldRight(pieces.last._1)({ case ((surface, height), result) => switchSurface(surface, result, height) })
+    pieces.init.foldRight(pieces.last._1)({ case ((surface, height), result) =>
+      select((z, _) => if (z < height) surface else result)
+    })
 
   def stack(pieces: (Surface, Double)*) = {
     var piecewisePieces = Seq[(Surface, Double)]()
@@ -32,24 +29,8 @@ object Main extends App {
   def skewedSurface(surface: Surface, zShift: Double) =
     Surface({ (z, a) => surface(z - a / tau * zShift, a) })
 
-  def intersection(surfaces: Surface*) =
-    Surface({ (z, a) => surfaces.map(_(z, a)).min })
-
-  def union(surfaces: Surface*) =
-    Surface({ (z, a) => surfaces.map(_(z, a)).max })
-
   def regularPolygon(sides: Int, innerRadius: Double) =
-    intersection((0 until sides).map(i => flatSurface(innerRadius).rotate(tau * i / sides)): _*)
-
-  def flatSurface(distance: Double) =
-    Surface({ (_, a) =>
-      val c = Math.cos(a)
-
-      if (c > 0)
-        distance / c
-      else
-        Double.PositiveInfinity
-    })
+    (0 until sides).map(i => plane(innerRadius).rotate(tau * i / sides)).reduce(_ & _)
 
   def isoThread(majorDiameter: Double, pitch: Double, includedAngle: Double = tau / 6) = {
     val h = pitch * sqrt(3) / 2
@@ -62,10 +43,10 @@ object Main extends App {
     val height3 = pitch / 8
     val height4 = pitch * 5 / 16
 
-    val piece1 = cone(0, height1, minorRadius, minorRadius)
-    val piece2 = cone(0, height2, minorRadius, majorRadius)
-    val piece3 = cone(0, height3, majorRadius, majorRadius)
-    val piece4 = cone(0, height4, majorRadius, minorRadius)
+    val piece1 = coneSegment(0, height1, minorRadius, minorRadius)
+    val piece2 = coneSegment(0, height2, minorRadius, majorRadius)
+    val piece3 = coneSegment(0, height3, majorRadius, majorRadius)
+    val piece4 = coneSegment(0, height4, majorRadius, minorRadius)
 
     val surface = stack((piece1, height1), (piece2, height2), (piece3, height3), (piece4, height4))
 
@@ -80,38 +61,38 @@ object Main extends App {
     val nutChamfer = headWidth * 0.03
     val nutInnerChamfer = size * 0.03
 
-    // Chamfer used to taper the end of the screw into a circle on the pointy end of the threaded part and to insert a cone into which the thread fades near the screw's head.
+    // Chamfer used to taper the end of the screw into a circle on tip of the screw and near the head.
     val threadChamfer = pitch
 
     private def headSurface = {
       val headInnerRadius = headWidth / 2
 
-      intersection(
-        regularPolygon(6, headInnerRadius),
-        cone(0, nutChamfer, headInnerRadius - nutChamfer, headInnerRadius),
-        cone(headHeight, headHeight - nutChamfer, headInnerRadius - nutChamfer, headInnerRadius))
+      (
+        regularPolygon(6, headInnerRadius)
+          & cone(0, headInnerRadius, 1).grow(-nutChamfer)
+          & cone(headHeight, headInnerRadius, -1).grow(-nutChamfer))
     }
 
     private def threadSurface(offset: Double) =
-      isoThread(size, pitch).radialShift(offset)
+      isoThread(size, pitch).grow(offset)
 
     def screw(length: Double) = {
-      val thread = intersection(
-        threadSurface(-tolerance / 2),
-        cone(length, length - threadChamfer, radius - threadChamfer, radius))
+      val thread = (
+        threadSurface(-tolerance / 2)
+          & cone(length, radius, -1).grow(-threadChamfer))
 
       val surface = stack(
         (headSurface, headHeight),
-        (union(thread, cone(0, threadChamfer, radius, radius - threadChamfer)), length))
+        (thread | cone(0, radius, -1), length))
 
       Part(surface, None, 0, length + headHeight)
     }
 
     def nut = {
-      val thread = union(
-        threadSurface(tolerance / 2),
-        cone(0, nutInnerChamfer, radius + nutInnerChamfer, radius),
-        cone(headHeight, headHeight - nutInnerChamfer, radius + nutInnerChamfer, radius))
+      val thread = (
+        threadSurface(tolerance / 2)
+          | cone(0, radius, -1).grow(nutInnerChamfer)
+          | cone(headHeight, radius, 1).grow(nutInnerChamfer))
 
       Part(headSurface, Some(thread), 0, headHeight)
     }

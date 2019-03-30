@@ -1,3 +1,5 @@
+import java.lang.Math.{max, min}
+
 trait Surface {
   def apply(z: Double, a: Double): Double
 
@@ -5,12 +7,32 @@ trait Surface {
 
   def shift(zOffset: Double) = Surface((z, a) => this(z - zOffset, a))
 
-  def radialShift(rOffset: Double) = Surface((z, a) => this(z, a) + rOffset)
+  def grow(rOffset: Double) = Surface((z, a) => this(z, a) + rOffset)
+
+  def |(other: Surface) = Surface((z, a) => max(this(z, a), other(z, a)))
+
+  def &(other: Surface) = Surface((z, a) => min(this(z, a), other(z, a)))
 }
 
 object Surface {
-  def apply(fn: (Double, Double) => Double): Surface =
-    new Surface {
-      override def apply(z: Double, a: Double): Double = fn(z, a)
-    }
+  def apply(fn: (Double, Double) => Double): Surface = (z, a) => fn(z, a)
+
+  def select(getSurface: (Double, Double) => Surface) =
+    Surface((z, a) => getSurface(z, a)(z, a))
+
+  def cone(z0: Double, r0: Double, slope: Double) =
+    Surface((z, _) => (z - z0) / slope + r0)
+
+  def plane(distance: Double) =
+    Surface({ (_, a) =>
+      val c = Math.cos(a)
+
+      if (c > 0)
+        distance / c
+      else
+        Double.PositiveInfinity
+    })
+
+  def coneSegment(z1: Double, z2: Double, r1: Double, r2: Double) =
+    cone(z1, r1, (z2 - z1) / (r2 - r1))
 }
