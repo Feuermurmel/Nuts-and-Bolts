@@ -104,7 +104,7 @@ object Main extends App {
         (headSurface, headHeight),
         (union(thread, cone(0, threadChamfer, radius, radius - threadChamfer)), length))
 
-      Part1(surface, 0, length + headHeight)
+      Part(surface, None, 0, length + headHeight)
     }
 
     def nut = {
@@ -113,7 +113,7 @@ object Main extends App {
         cone(0, nutInnerChamfer, radius + nutInnerChamfer, radius),
         cone(headHeight, headHeight - nutInnerChamfer, radius + nutInnerChamfer, radius))
 
-      Part2(headSurface, thread, 0, headHeight)
+      Part(headSurface, Some(thread), 0, headHeight)
     }
   }
 
