@@ -2,32 +2,46 @@ import java.lang.Math.{cos, max, round, sin}
 
 import util.MathUtil.tau
 
-case class Part(outerSurface: Surface, innerSurface: Option[Surface], zMin: Double, zMax: Double) {
+case class Part(slices: Seq[Part.Slice], opened: Boolean) {
   import Part._
 
   def toPolyhedron(zResolution: Double, aResolution: Double) = {
-    def row(surface: Surface, z: Double) =
+    def getRow(surface: Surface, z: Double) =
       halfOpenRange(0, tau, aResolution).map(point(surface, z, _))
 
-    def rows(surface: Surface) =
-      closedRange(zMin, zMax, zResolution).map(row(surface, _))
+    def getRows(surface: Surface, start: Double, end: Double) =
+      closedRange(start, end, zResolution).map(getRow(surface, _))
 
-    val outerRows = rows(outerSurface)
+    var currentZ = 0.0
+    var rows = Seq[Seq[Point]]()
 
-    val allFaces = innerSurface.map(rows) match {
-      case None => (
-        faces(rows(outerSurface))
-          ++ endFaces(outerRows.head.reverse, zMin)
-          ++ endFaces(outerRows.last, zMax))
-      case Some(innerRows) =>
-        faces(cyclic(outerRows ++ innerRows.reverse))
-    }
+    slices.foreach({ slice =>
+      if (slice.reversed) {
+        val nextZ = currentZ - slice.height
 
-    Polyhedron(allFaces)
+        rows ++= getRows(slice.surface.shift(nextZ), nextZ, currentZ).reverse
+        currentZ = nextZ
+      } else {
+        val nextZ = currentZ + slice.height
+
+        rows ++= getRows(slice.surface.shift(currentZ), currentZ, nextZ)
+        currentZ = nextZ
+      }
+    })
+
+    Polyhedron(
+      if (opened)
+        faces(cyclic(rows))
+      else
+        faces(rows)
+          ++ endFaces(rows.head.reverse, 0)
+          ++ endFaces(rows.last, currentZ))
   }
 }
 
 object Part {
+  case class Slice(surface: Surface, height: Double, reversed: Boolean)
+
   def range(start: Double, end: Double, resolution: Double, rangeFn: (Int, Int) => Range) = {
     val size = end - start
     val steps = max(2, round(size / resolution).toInt)

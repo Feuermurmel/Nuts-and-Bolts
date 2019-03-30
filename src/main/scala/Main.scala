@@ -81,11 +81,10 @@ object Main extends App {
         threadSurface(-tolerance / 2)
           & cone(length, radius, -1).grow(-threadChamfer))
 
-      val surface = stack(
-        (headSurface, headHeight),
-        (thread | cone(0, radius, -1), length))
-
-      Part(surface, None, 0, length + headHeight)
+      PartBuilder()
+        .up(headSurface, headHeight)
+        .up(thread | cone(0, radius, -1), length)
+        .buildWithoutHole
     }
 
     def nut = {
@@ -94,7 +93,10 @@ object Main extends App {
           | cone(0, radius, -1).grow(nutInnerChamfer)
           | cone(headHeight, radius, 1).grow(nutInnerChamfer))
 
-      Part(headSurface, Some(thread), 0, headHeight)
+      PartBuilder()
+        .up(headSurface, headHeight)
+        .down(thread, headHeight)
+        .buildWithHole
     }
   }
 
