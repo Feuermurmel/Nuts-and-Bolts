@@ -1,9 +1,7 @@
-import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Path}
+import java.nio.file.Path
 import java.nio.{ByteBuffer, ByteOrder}
 
 import util.PathUtil
-import util.PathUtil.usingTemporaryFile
 
 case class Point(x: Double, y: Double, z: Double)
 
@@ -11,27 +9,6 @@ case class Face(p1: Point, p2: Point, p3: Point)
 
 case class Polyhedron(faces: Seq[Face]) {
   import Polyhedron._
-
-  def asOpenSCADExpression = {
-    val points = faces.flatMap(facePoints).distinct.sortBy(x => pointComponents(x): Iterable[Double])
-    val indexByPoint = points.zipWithIndex.toMap
-
-    def arrayStr[A](parts: Seq[A])(toString: A => String) =
-      s"[${parts.map(toString).mkString(", ")}]"
-
-    val pointsStr = arrayStr(points)(p => arrayStr(pointComponents(p))(_.toString))
-    val facesStr = arrayStr(faces)(f => arrayStr(facePoints(f))(indexByPoint(_).toString))
-
-    s"polyhedron(points = $pointsStr, faces = $facesStr)"
-  }
-
-  def writeToOpenSCADFile(path: Path): Unit = {
-    val fileContent = s"$asOpenSCADExpression;\n"
-
-    usingTemporaryFile(path) { tempPath =>
-      Files.write(tempPath, fileContent.getBytes(StandardCharsets.UTF_8))
-    }
-  }
 
   def writeToSTLFile(path: Path): Unit =
     PathUtil.writeUsingChannel(path) { channel =>
