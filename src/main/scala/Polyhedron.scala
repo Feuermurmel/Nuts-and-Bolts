@@ -22,11 +22,12 @@ case class Point(x: Double, y: Double, z: Double) {
       x * other.y - y * other.x)
 }
 
-case class Face(p1: Point, p2: Point, p3: Point)
+case class Face(p1: Point, p2: Point, p3: Point) {
+  // TODO: Maybe we should handle polygons with zero area.
+  def normal = ((p2 - p1) cross (p3 - p1)).normalized
+}
 
 case class Polyhedron(faces: Seq[Face]) {
-  import Polyhedron._
-
   def writeToSTLFile(path: Path): Unit =
     PathUtil.writeUsingChannel(path) { channel =>
       val buffer = ByteBuffer.allocate(80 + 4)
@@ -43,6 +44,12 @@ case class Polyhedron(faces: Seq[Face]) {
       def skip(count: Int) =
         buffer.position(buffer.position() + count)
 
+      def putPoint(point: Point) = {
+        putFloat(point.x.toFloat)
+        putFloat(point.y.toFloat)
+        putFloat(point.z.toFloat)
+      }
+
       // Skip unused header part.
       skip(80)
 
@@ -52,16 +59,10 @@ case class Polyhedron(faces: Seq[Face]) {
       flush()
 
       faces.foreach({ face =>
-        // TODO: Maybe we should handle polygons with zero area.
-        val normal = ((face.p2 - face.p1) cross (face.p3 - face.p1)).normalized
-
-        pointComponents(normal).foreach({ component => putFloat(component.toFloat) })
-
-        facePoints(face).foreach({ point =>
-          pointComponents(point).foreach({ component =>
-            putFloat(component.toFloat)
-          })
-        })
+        putPoint(face.normal)
+        putPoint(face.p1)
+        putPoint(face.p2)
+        putPoint(face.p3)
 
         // Attribute size.
         putShort(0)
@@ -69,10 +70,4 @@ case class Polyhedron(faces: Seq[Face]) {
         flush()
       })
     }
-}
-
-object Polyhedron {
-  def facePoints(face: Face) = Seq(face.p1, face.p2, face.p3)
-
-  def pointComponents(point: Point) = Seq(point.x, point.y, point.z)
 }
