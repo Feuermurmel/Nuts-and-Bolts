@@ -52,8 +52,10 @@ case class Polyhedron(faces: Seq[Face]) {
       flush()
 
       faces.foreach({ face =>
-        // Skip the normal (leave all zeros).
-        skip(3 * 4)
+        // TODO: Maybe we should handle polygons with zero area.
+        val normal = ((face.p2 - face.p1) cross (face.p3 - face.p1)).normalized
+
+        pointComponents(normal).foreach({ component => putFloat(component.toFloat) })
 
         facePoints(face).foreach({ point =>
           pointComponents(point).foreach({ component =>
