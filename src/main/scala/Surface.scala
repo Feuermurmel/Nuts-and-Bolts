@@ -23,6 +23,9 @@ object Surface {
   def cone(z0: Double, r0: Double, slope: Double) =
     Surface((z, _) => r0 + (z - z0) * slope)
 
+  def cylinder(r: Double) =
+    cone(0, r, 0)
+
   def plane(distance: Double) =
     Surface({ (_, a) =>
       val c = Math.cos(a)
