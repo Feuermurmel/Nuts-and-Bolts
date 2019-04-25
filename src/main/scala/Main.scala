@@ -100,17 +100,17 @@ object Main extends App {
     }
   }
 
+  val outputPath = Paths.get("output")
+
   def writePart(part: Part, name: String): Unit = {
-    def write(zResolution: Double, aPoints: Int, dirPath: Path): Unit = {
-      val path = dirPath.resolve(s"$name.stl")
+    val path = outputPath.resolve(s"$name.stl")
 
-      println(s"Writing $path ...")
+    println(s"Writing $path ...")
 
-      part.toPolyhedron(zResolution, tau / aPoints).writeToSTLFile(path)
-    }
+    val zResolution = 0.1
+    val aPoints = 6 * 30
 
-    write(0.5, 6 * 6, Paths.get("output/preview"))
-    write(0.1, 6 * 30, Paths.get("output"))
+    part.toPolyhedron(zResolution, tau / aPoints).writeToSTLFile(path)
   }
 
   def writeNutAndScrew(name: String, screw: Screw, screwLength: Double): Unit = {
