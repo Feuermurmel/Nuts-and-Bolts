@@ -100,6 +100,15 @@ object Main extends App {
     }
   }
 
+  case class Washer(innerDiameter: Double, outerDiameter: Double, thickness: Double) {
+    val tolerance = 0.2
+
+    def surface = PartBuilder()
+      .up(Surface.cylinder(outerDiameter / 2), thickness)
+      .down(Surface.cylinder(innerDiameter / 2 + tolerance / 2), thickness)
+      .buildWithHole
+  }
+
   val outputPath = Paths.get("output")
 
   def writePart(part: Part, name: String): Unit = {
@@ -118,6 +127,9 @@ object Main extends App {
     writePart(screw.screw(screwLength), s"$name-screw")
   }
 
+  def writeWasher(name: String, washer: Washer): Unit =
+    writePart(washer.surface, s"$name-washer")
+
   def main(): Unit = {
     writeNutAndScrew("M2", Screw(2, 0.4, 4), 8)
     writeNutAndScrew("M3", Screw(3, 0.5, 5.5), 9)
@@ -129,6 +141,9 @@ object Main extends App {
     writeNutAndScrew("M10", Screw(10, 1.5, 16), 20)
     writeNutAndScrew("M20", Screw(20, 2.5, 30), 40)
     writeNutAndScrew("M24", Screw(24, 3, 36), 50)
+
+    writeWasher("M8", Washer(8.4, 16, 1.6))
+    writeWasher("M10", Washer(10.5, 20, 2))
   }
 
   main()
