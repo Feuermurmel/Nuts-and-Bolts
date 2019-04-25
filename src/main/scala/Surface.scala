@@ -21,7 +21,7 @@ object Surface {
     Surface((z, a) => getSurface(z, a)(z, a))
 
   def cone(z0: Double, r0: Double, slope: Double) =
-    Surface((z, _) => (z - z0) / slope + r0)
+    Surface((z, _) => r0 + (z - z0) * slope)
 
   def plane(distance: Double) =
     Surface({ (_, a) =>
@@ -34,5 +34,5 @@ object Surface {
     })
 
   def coneSegment(z1: Double, z2: Double, r1: Double, r2: Double) =
-    cone(z1, r1, (z2 - z1) / (r2 - r1))
+    cone(z1, r1, (r2 - r1) / (z2 - z1))
 }
