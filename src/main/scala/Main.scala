@@ -1,28 +1,11 @@
 import java.lang.Math.sqrt
-import java.nio.file.{Path, Paths}
+import java.nio.file.Paths
 
-import Surface.{cone, coneSegment, plane, select}
+import Surface.{cone, coneSegment, plane}
 import util.MathUtil
 import util.MathUtil.tau
 
 object Main extends App {
-  def piecewiseSurface(pieces: (Surface, Double)*) =
-    pieces.init.foldRight(pieces.last._1)({ case ((surface, height), result) =>
-      select((z, _) => if (z < height) surface else result)
-    })
-
-  def stack(pieces: (Surface, Double)*) = {
-    var piecewisePieces = Seq[(Surface, Double)]()
-    var pos = 0d
-
-    pieces.foreach({ case (p, h) =>
-      piecewisePieces :+= (p.shift(pos), pos + h)
-      pos += h
-    })
-
-    piecewiseSurface(piecewisePieces: _*)
-  }
-
   def repeatedSurface(surface: Surface, zMax: Double) =
     Surface({ (z, a) => surface(MathUtil.mod(z, zMax), a) })
 
@@ -38,17 +21,18 @@ object Main extends App {
     val majorRadius = majorDiameter / 2
     val minorRadius = majorRadius - h * 5 / 8
 
-    val height1 = pitch / 4
-    val height2 = pitch * 5 / 16
-    val height3 = pitch / 8
-    val height4 = pitch * 5 / 16
+    val z0 = 0
+    val z1 = z0 + pitch / 4
+    val z2 = z1 + pitch * 5 / 16
+    val z3 = z2 + pitch / 8
+    val z4 = z3 + pitch * 5 / 16
 
-    val piece1 = coneSegment(0, height1, minorRadius, minorRadius)
-    val piece2 = coneSegment(0, height2, minorRadius, majorRadius)
-    val piece3 = coneSegment(0, height3, majorRadius, majorRadius)
-    val piece4 = coneSegment(0, height4, majorRadius, minorRadius)
+    val piece1 = coneSegment(z0, z1, minorRadius, minorRadius)
+    val piece2 = coneSegment(z1, z2, minorRadius, majorRadius)
+    val piece3 = coneSegment(z2, z3, majorRadius, majorRadius)
+    val piece4 = coneSegment(z3, z4, majorRadius, minorRadius)
 
-    val surface = stack((piece1, height1), (piece2, height2), (piece3, height3), (piece4, height4))
+    val surface = Surface.piecewise((piece1, z1), (piece2, z2), (piece3, z3), (piece4, z4))
 
     skewedSurface(repeatedSurface(surface, pitch), pitch)
   }

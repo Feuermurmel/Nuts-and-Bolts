@@ -20,8 +20,20 @@ object Surface {
   def select(getSurface: (Double, Double) => Surface) =
     Surface((z, a) => getSurface(z, a)(z, a))
 
+  // TODO: Rewrite this comment.
+  /**
+    * Surface which starts at z == -inf with the first surface up to the first z height followed by surface(i) up to z(i). After z(n), switches back to the first surface.
+    */
+  def piecewise(pieces: (Surface, Double)*) =
+    select({ (z, _) =>
+      pieces.collectFirst({ case (ps, pz) if z < pz => ps }).getOrElse(pieces.head._1)
+    })
+
   def cone(z0: Double, r0: Double, slope: Double) =
     Surface((z, _) => r0 + (z - z0) * slope)
+
+  def coneSegment(z1: Double, z2: Double, r1: Double, r2: Double) =
+    cone(z1, r1, (r2 - r1) / (z2 - z1))
 
   def cylinder(r: Double) =
     cone(0, r, 0)
@@ -35,7 +47,4 @@ object Surface {
       else
         Double.PositiveInfinity
     })
-
-  def coneSegment(z1: Double, z2: Double, r1: Double, r2: Double) =
-    cone(z1, r1, (r2 - r1) / (z2 - z1))
 }
