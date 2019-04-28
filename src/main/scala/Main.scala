@@ -7,10 +7,10 @@ import util.MathUtil.tau
 
 object Main extends App {
   def repeatedSurface(surface: Surface, zMax: Double) =
-    Surface({ (z, a) => surface(MathUtil.mod(z, zMax), a) })
+    Surface(p => surface(MathUtil.mod(p.z, zMax), p.c))
 
   def skewedSurface(surface: Surface, zShift: Double) =
-    Surface({ (z, a) => surface(z - a / tau * zShift, a) })
+    Surface(p => surface(p.z - p.c / tau * zShift, p.c))
 
   def regularPolygon(sides: Int, innerRadius: Double) =
     (0 until sides).map(i => plane(innerRadius).rotate(tau * i / sides)).reduce(_ & _)
