@@ -14,6 +14,11 @@ case class Surface(fn: Surface.Parameter => Double) {
   def |(other: Surface) = Surface(p => max(this(p), other(p)))
 
   def &(other: Surface) = Surface(p => min(this(p), other(p)))
+
+  def slice(zStart: Double, zEnd: Double): SurfaceSlice =
+    SurfaceSlice(shift(-zStart), zEnd - zStart, SurfaceSlice.Orientation.Outward)
+
+  def slice(zEnd: Double): SurfaceSlice = slice(0, zEnd)
 }
 
 object Surface {

@@ -65,10 +65,9 @@ object Main extends App {
         threadSurface(-tolerance / 2)
           & cone(length, radius, -1).grow(-threadChamfer))
 
-      PartBuilder()
-        .up(headSurface, headHeight)
-        .up(thread | cone(0, radius, -1), length)
-        .buildWithoutHole
+      Part.withoutHole(
+        headSurface.slice(headHeight),
+        (thread | cone(0, radius, -1)).slice(length))
     }
 
     def nut = {
@@ -77,20 +76,18 @@ object Main extends App {
           | cone(0, radius, -1).grow(nutInnerChamfer)
           | cone(headHeight, radius, 1).grow(nutInnerChamfer))
 
-      PartBuilder()
-        .up(headSurface, headHeight)
-        .down(thread, headHeight)
-        .buildWithHole
+      Part.withHole(
+        headSurface.slice(headHeight),
+        thread.slice(headHeight).invert)
     }
   }
 
   case class Washer(innerDiameter: Double, outerDiameter: Double, thickness: Double) {
     val tolerance = 0.2
 
-    def surface = PartBuilder()
-      .up(Surface.cylinder(outerDiameter / 2), thickness)
-      .down(Surface.cylinder(innerDiameter / 2 + tolerance / 2), thickness)
-      .buildWithHole
+    def surface = Part.withHole(
+      Surface.cylinder(outerDiameter / 2).slice(thickness),
+      Surface.cylinder(innerDiameter / 2 + tolerance / 2).slice(thickness).invert)
   }
 
   val outputPath = Paths.get("output")
