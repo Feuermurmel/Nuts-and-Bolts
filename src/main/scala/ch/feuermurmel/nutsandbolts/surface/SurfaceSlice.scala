@@ -1,3 +1,4 @@
+package ch.feuermurmel.nutsandbolts.surface
 
 case class SurfaceSlice(surface: Surface, height: Double, orientation: SurfaceSlice.Orientation) {
   def invert = copy(

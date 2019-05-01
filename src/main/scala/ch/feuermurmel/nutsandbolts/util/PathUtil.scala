@@ -1,9 +1,9 @@
-package util
+package ch.feuermurmel.nutsandbolts.util
 
 import java.nio.channels.WritableByteChannel
 import java.nio.file.{Files, Path, StandardCopyOption, StandardOpenOption}
 
-import util.AutoCloseableUtil.withCloseable
+import ch.feuermurmel.nutsandbolts.util.AutoCloseableUtil.withCloseable
 
 object PathUtil {
   def usingTemporaryFile(path: Path)(block: Path => Unit): Unit = {

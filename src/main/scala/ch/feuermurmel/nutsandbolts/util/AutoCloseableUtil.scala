@@ -1,4 +1,4 @@
-package util
+package ch.feuermurmel.nutsandbolts.util
 
 object AutoCloseableUtil {
   def withCloseable[A <: AutoCloseable, R](getResource: => A)(block: A => R) = {

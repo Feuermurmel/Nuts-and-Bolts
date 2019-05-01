@@ -1,9 +1,13 @@
+package ch.feuermurmel.nutsandbolts.surface
+
 import java.lang.Math.{cos, max, round, sin}
 
-import util.MathUtil.tau
+import ch.feuermurmel.nutsandbolts.polyhedron
+import ch.feuermurmel.nutsandbolts.polyhedron.{Face, Point, Polyhedron}
+import ch.feuermurmel.nutsandbolts.util.MathUtil.tau
 
-case class Part(slices: Seq[SurfaceSlice], hasHole: Boolean) {
-  import Part._
+case class Body(slices: Seq[SurfaceSlice], hasHole: Boolean) {
+  import Body._
 
   def toPolyhedron(zResolution: Double, aResolution: Double) = {
     def getRow(surface: Surface, z: Double) =
@@ -40,10 +44,10 @@ case class Part(slices: Seq[SurfaceSlice], hasHole: Boolean) {
   }
 }
 
-object Part {
-  def withoutHole(slices: SurfaceSlice*) = Part(slices, hasHole = false)
+object Body {
+  def withoutHole(slices: SurfaceSlice*) = Body(slices, hasHole = false)
 
-  def withHole(slices: SurfaceSlice*) = Part(slices, hasHole = true)
+  def withHole(slices: SurfaceSlice*) = Body(slices, hasHole = true)
 
   private def range(start: Double, end: Double, resolution: Double, rangeFn: (Int, Int) => Range) = {
     val size = end - start
@@ -72,10 +76,10 @@ object Part {
   private def faces(rows: Seq[Seq[Point]]) =
     slidingPairs(rows)({ (row1, row2) =>
       slidingPairs(cyclic(row1.zip(row2)))({ case ((p1, p2), (p3, p4)) =>
-        Seq(Face(p1, p3, p4), Face(p1, p4, p2))
+        Seq(Face(p1, p3, p4), polyhedron.Face(p1, p4, p2))
       }).flatten
     }).flatten
 
   private def endFaces(row: Seq[Point], z: Double) =
-    slidingPairs(cyclic(row))(Face(_, _, Point(0, 0, z)))
+    slidingPairs(cyclic(row))(polyhedron.Face(_, _, Point(0, 0, z)))
 }

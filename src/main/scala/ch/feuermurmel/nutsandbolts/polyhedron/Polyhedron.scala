@@ -1,31 +1,9 @@
+package ch.feuermurmel.nutsandbolts.polyhedron
+
 import java.nio.file.Path
 import java.nio.{ByteBuffer, ByteOrder}
 
-import util.PathUtil
-
-case class Point(x: Double, y: Double, z: Double) {
-  def +(other: Point) = Point(x + other.x, y + other.y, z + other.z)
-  def *(other: Double) = Point(x * other, y * other, z * other)
-  def /(other: Double) = this * (1 / other)
-  def -(other: Point) = this + -other
-  def unary_- = this * -1
-
-  def dot(other: Point) = x * other.x + y * other.y + z * other.z
-  def normSq = this dot this
-  def norm = Math.sqrt(normSq)
-  def normalized = this / norm
-
-  def cross(other: Point) =
-    Point(
-      y * other.z - z * other.y,
-      z * other.x - x * other.z,
-      x * other.y - y * other.x)
-}
-
-case class Face(p1: Point, p2: Point, p3: Point) {
-  // TODO: Maybe we should handle polygons with zero area.
-  def normal = ((p2 - p1) cross (p3 - p1)).normalized
-}
+import ch.feuermurmel.nutsandbolts.util.PathUtil
 
 case class Polyhedron(faces: Seq[Face]) {
   def writeToSTLFile(path: Path): Unit =

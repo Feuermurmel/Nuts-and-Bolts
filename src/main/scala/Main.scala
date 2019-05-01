@@ -1,6 +1,8 @@
 import java.nio.file.Paths
 
-import util.MathUtil.tau
+import ch.feuermurmel.nutsandbolts.part.{nut, simpleBolt}
+import ch.feuermurmel.nutsandbolts.surface.{Body, Surface}
+import ch.feuermurmel.nutsandbolts.util.MathUtil.tau
 
 object Main extends App {
   case class Screw(size: Double, pitch: Double, headSize: Double)
@@ -8,14 +10,14 @@ object Main extends App {
   case class Washer(innerDiameter: Double, outerDiameter: Double, thickness: Double) {
     val tolerance = 0.2
 
-    def surface = Part.withHole(
+    def surface = Body.withHole(
       Surface.cylinder(outerDiameter / 2).slice(thickness),
       Surface.cylinder(innerDiameter / 2 + tolerance / 2).slice(thickness).invert)
   }
 
   val outputPath = Paths.get("output")
 
-  def writePart(part: Part, name: String): Unit = {
+  def writePart(part: Body, name: String): Unit = {
     val path = outputPath.resolve(s"$name.stl")
 
     println(s"Writing $path ...")
@@ -27,11 +29,11 @@ object Main extends App {
   }
 
   def writeNutAndScrew(name: String, screw: Screw, screwLength: Double): Unit = {
-    val thread = NutsAndBolts.isoThread(screw.size, screw.pitch)
-    val head = NutsAndBolts.isoBoltHead(screw.headSize)
+    val thread = ISO.isoThread(screw.size, screw.pitch)
+    val head = ISO.isoBoltHead(screw.headSize)
 
-    writePart(NutsAndBolts.Rod.nut(thread, head), s"$name-nut")
-    writePart(NutsAndBolts.Rod.simpleBolt(thread, head).part(screwLength), s"$name-screw")
+    writePart(nut(thread, head), s"$name-nut")
+    writePart(simpleBolt(thread, head, screwLength), s"$name-screw")
   }
 
   def writeWasher(name: String, washer: Washer): Unit =

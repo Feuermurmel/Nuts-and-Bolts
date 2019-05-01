@@ -1,19 +1,23 @@
+package ch.feuermurmel.nutsandbolts.surface
+
 import java.lang.Math.{cos, max, min}
+
+import ch.feuermurmel.nutsandbolts.util.MathUtil.{mod, tau}
 
 case class Surface(fn: Surface.Parameter => Double) {
   def apply(coord: Surface.Parameter): Double = fn(coord)
 
-  def apply(z: Double, c: Double): Double = this(Surface.Parameter(z, c))
+  def apply(z: Double, c: Double): Double = this (Surface.Parameter(z, c))
 
-  def rotate(aOffset: Double) = Surface(p => this(p.z, p.c - aOffset))
+  def rotate(aOffset: Double) = Surface(p => this (p.z, p.c - aOffset))
 
-  def shift(zOffset: Double) = Surface(p => this(p.z - zOffset, p.c))
+  def shift(zOffset: Double) = Surface(p => this (p.z - zOffset, p.c))
 
-  def grow(rOffset: Double) = Surface(p => this(p) + rOffset)
+  def grow(rOffset: Double) = Surface(p => this (p) + rOffset)
 
-  def |(other: Surface) = Surface(p => max(this(p), other(p)))
+  def |(other: Surface) = Surface(p => max(this (p), other(p)))
 
-  def &(other: Surface) = Surface(p => min(this(p), other(p)))
+  def &(other: Surface) = Surface(p => min(this (p), other(p)))
 
   def slice(zStart: Double, zEnd: Double): SurfaceSlice =
     SurfaceSlice(shift(-zStart), zEnd - zStart, SurfaceSlice.Orientation.Outward)
@@ -60,4 +64,16 @@ object Surface {
       else
         Double.PositiveInfinity
     })
+
+  def repeatedSurface(surface: Surface, zMax: Double) =
+    Surface(p => surface(mod(p.z, zMax), p.c))
+
+  def skewedSurface(surface: Surface, zShift: Double) =
+    Surface(p => surface(p.z - p.c / tau * zShift, p.c))
+
+  def regularPolygon(sides: Int, innerRadius: Double) =
+    (0 until sides).map(i => plane(innerRadius).rotate(tau * i / sides)).reduce(_ & _)
+
+  def reverseSurface(surface: Surface) =
+    Surface(p => surface(p.z, -p.c))
 }
