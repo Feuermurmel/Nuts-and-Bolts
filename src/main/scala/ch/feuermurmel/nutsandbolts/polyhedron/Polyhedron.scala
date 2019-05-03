@@ -3,6 +3,7 @@ package ch.feuermurmel.nutsandbolts.polyhedron
 import java.nio.file.Path
 import java.nio.{ByteBuffer, ByteOrder}
 
+import ch.feuermurmel.nutsandbolts.util.MathUtil.isFinite
 import ch.feuermurmel.nutsandbolts.util.PathUtil
 
 case class Polyhedron(faces: Seq[Face]) {
@@ -22,10 +23,15 @@ case class Polyhedron(faces: Seq[Face]) {
       def skip(count: Int) =
         buffer.position(buffer.position() + count)
 
+      def putFiniteFloat(x: Float) = {
+        require(isFinite(x))
+        putFloat(x)
+      }
+
       def putPoint(point: Point) = {
-        putFloat(point.x.toFloat)
-        putFloat(point.y.toFloat)
-        putFloat(point.z.toFloat)
+        putFiniteFloat(point.x.toFloat)
+        putFiniteFloat(point.y.toFloat)
+        putFiniteFloat(point.z.toFloat)
       }
 
       // Skip unused header part.
