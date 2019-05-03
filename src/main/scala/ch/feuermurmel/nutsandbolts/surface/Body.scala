@@ -4,17 +4,20 @@ import java.lang.Math.{cos, max, round, sin}
 
 import ch.feuermurmel.nutsandbolts.polyhedron
 import ch.feuermurmel.nutsandbolts.polyhedron.{Face, Point, Polyhedron}
-import ch.feuermurmel.nutsandbolts.util.MathUtil.tau
+import ch.feuermurmel.nutsandbolts.util.MathUtil.{phi, tau}
 
 case class Body(slices: Seq[SurfaceSlice], hasHole: Boolean) {
   import Body._
 
-  def toPolyhedron(zResolution: Double, aResolution: Double) = {
+  def toPolyhedron(resolution: Double) = {
+    val partRadius = guessPartRadius(slices, resolution)
+    val cResolution = tau / Math.ceil(partRadius * tau / resolution)
+
     def getRow(surface: Surface, z: Double) =
-      halfOpenRange(0, tau, aResolution).map(point(surface, z, _))
+      halfOpenRange(0, tau, cResolution).map(point(surface, z, _))
 
     def getRows(surface: Surface, start: Double, end: Double) =
-      closedRange(start, end, zResolution).map(getRow(surface, _))
+      closedRange(start, end, resolution).map(getRow(surface, _))
 
     var currentZ = 0.0
     var rows = Seq[Seq[Point]]()
@@ -82,4 +85,20 @@ object Body {
 
   private def endFaces(row: Seq[Point], z: Double) =
     slidingPairs(cyclic(row))(polyhedron.Face(_, _, Point(0, 0, z)))
+
+  private def quantile(values: Seq[Double], q: Double) =
+    values.sorted.apply(((values.size - 1) * q).toInt)
+
+  private def guessPartRadius(slices: Seq[SurfaceSlice], resolution: Double) = {
+    val goldenAngle = tau / (1 + phi)
+
+    // Probed layers, represented as tuples of slice and Z-height.
+    val layers = slices.flatMap(s => closedRange(0, s.height, resolution).map((s, _)))
+
+    val values = layers
+      .zipWithIndex
+      .map({ case ((slice, z), i) => slice.surface(z, i * goldenAngle) })
+
+    quantile(values, 0.95)
+  }
 }

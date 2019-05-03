@@ -2,7 +2,6 @@ import java.nio.file.Paths
 
 import ch.feuermurmel.nutsandbolts.part.{nut, simpleBolt}
 import ch.feuermurmel.nutsandbolts.surface.{Body, Surface}
-import ch.feuermurmel.nutsandbolts.util.MathUtil.tau
 
 object Main extends App {
   case class Screw(size: Double, pitch: Double, headSize: Double)
@@ -22,10 +21,7 @@ object Main extends App {
 
     println(s"Writing $path ...")
 
-    val zResolution = 0.1
-    val aPoints = 6 * 30
-
-    part.toPolyhedron(zResolution, tau / aPoints).writeToSTLFile(path)
+    part.toPolyhedron(0.1).writeToSTLFile(path)
   }
 
   def writeNutAndScrew(name: String, screw: Screw, screwLength: Double): Unit = {

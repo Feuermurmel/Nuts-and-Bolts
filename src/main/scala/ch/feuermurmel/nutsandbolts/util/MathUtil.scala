@@ -1,7 +1,11 @@
 package ch.feuermurmel.nutsandbolts.util
 
+import java.lang.Math.{PI, sqrt}
+
 object MathUtil {
-  val tau = Math.PI * 2
+  val tau = PI * 2
+
+  val phi = (1 + sqrt(5)) / 2
 
   def mod(x: Double, modulus: Double) = x - (x / modulus).floor * modulus
 
