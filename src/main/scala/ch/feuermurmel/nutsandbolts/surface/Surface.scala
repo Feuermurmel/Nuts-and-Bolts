@@ -55,6 +55,9 @@ object Surface {
   def cylinder(r: Double) =
     cone(0, r, 0)
 
+  def sphere(r: Double) =
+    Surface(p => sqrt(r * r - p.z * p.z))
+
   def plane(distance: Double) =
     Surface({ p =>
       val c = cos(p.c)
