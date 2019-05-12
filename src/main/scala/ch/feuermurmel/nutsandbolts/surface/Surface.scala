@@ -1,23 +1,23 @@
 package ch.feuermurmel.nutsandbolts.surface
 
-import java.lang.Math.{cos, max, min}
+import java.lang.Math.{cos, max, min, sqrt}
 
 import ch.feuermurmel.nutsandbolts.util.MathUtil.{mod, tau}
 
 case class Surface(fn: Surface.Parameter => Double) {
   def apply(coord: Surface.Parameter): Double = fn(coord)
 
-  def apply(z: Double, c: Double): Double = this (Surface.Parameter(z, c))
+  def apply(z: Double, c: Double): Double = this(Surface.Parameter(z, c))
 
-  def rotate(aOffset: Double) = Surface(p => this (p.z, p.c - aOffset))
+  def rotate(aOffset: Double) = Surface(p => this(p.z, p.c - aOffset))
 
-  def shift(zOffset: Double) = Surface(p => this (p.z - zOffset, p.c))
+  def shift(zOffset: Double) = Surface(p => this(p.z - zOffset, p.c))
 
-  def grow(rOffset: Double) = Surface(p => this (p) + rOffset)
+  def grow(rOffset: Double) = Surface(p => this(p) + rOffset)
 
-  def |(other: Surface) = Surface(p => max(this (p), other(p)))
+  def |(other: Surface) = Surface(p => max(this(p), other(p)))
 
-  def &(other: Surface) = Surface(p => min(this (p), other(p)))
+  def &(other: Surface) = Surface(p => min(this(p), other(p)))
 
   def slice(zStart: Double, zEnd: Double): SurfaceSlice =
     SurfaceSlice(shift(-zStart), zEnd - zStart, SurfaceSlice.Orientation.Outward)
