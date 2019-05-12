@@ -1,6 +1,6 @@
 package ch.feuermurmel.nutsandbolts.surface
 
-import java.lang.Math.{cos, max, round, sin}
+import java.lang.Math.{cos, floorMod, max, round, sin, sqrt}
 
 import ch.feuermurmel.nutsandbolts.polyhedron
 import ch.feuermurmel.nutsandbolts.polyhedron.{Face, Point, Polyhedron}
@@ -11,16 +11,21 @@ case class Body(slices: Seq[SurfaceSlice], hasHole: Boolean) {
 
   def toPolyhedron(resolution: Double) = {
     val partRadius = guessPartRadius(slices, resolution)
-    val cResolution = tau / Math.ceil(partRadius * tau / resolution)
 
-    def getRow(surface: Surface, z: Double) =
-      halfOpenRange(0, tau, cResolution).map(point(surface, z, _))
+    // Use a resolution for cResolution * partRadius that is smaller by a factor of sqrt(3) / 2 than resolution so that the triangles of the generated mesh are equilateral at a radius of partRadius.
+    val cResolution = tau / Math.ceil(partRadius * tau / resolution * sqrt(3) / 2)
+
+    case class Row(surface: Surface, z: Double)
 
     def getRows(surface: Surface, start: Double, end: Double) =
-      closedRange(start, end, resolution).map(getRow(surface, _))
+      closedRange(start, end, resolution).map(Row(surface, _))
+
+    def getPoints(row: Row, index: Int) =
+      // Each row is shifted half a step around the C-axis to (ideally) produce equilateral triangles instead of pairs of right-angled triangles.
+      halfOpenRange(0, tau, cResolution).map(c => point(row.surface, row.z, c + cResolution * index / 2))
 
     var currentZ = 0.0
-    var rows = Seq[Seq[Point]]()
+    var rows = Seq[Row]()
 
     slices.foreach({ slice =>
       slice.orientation match {
@@ -37,13 +42,16 @@ case class Body(slices: Seq[SurfaceSlice], hasHole: Boolean) {
       }
     })
 
+    val points = rows.zipWithIndex.map({ case (x, i) => getPoints(x, i) })
+
     Polyhedron(
       if (hasHole)
-        faces(cyclic(rows))
+        // To close the loop of rows, the first row has to be copied to the end and rotated to counter the effect of shifting each row half a step around the C-axis.
+        faces(points :+ rotate(points.head, points.size / 2))
       else
-        faces(rows)
-          ++ endFaces(rows.head.reverse, 0)
-          ++ endFaces(rows.last, currentZ))
+        faces(points)
+          ++ endFaces(points.head.reverse, 0)
+          ++ endFaces(points.last, currentZ))
   }
 }
 
@@ -57,6 +65,12 @@ object Body {
     val steps = max(2, round(size / resolution).toInt)
 
     rangeFn(0, steps).map(start + _ * size / steps)
+  }
+
+  private def rotate[A](seq: Seq[A], n: Int) = {
+    val numElements = floorMod(n, seq.size)
+
+    seq.drop(numElements) ++ seq.take(numElements)
   }
 
   private def cyclic[A](seq: Seq[A]) = seq :+ seq.head
@@ -79,7 +93,7 @@ object Body {
   private def faces(rows: Seq[Seq[Point]]) =
     slidingPairs(rows)({ (row1, row2) =>
       slidingPairs(cyclic(row1.zip(row2)))({ case ((p1, p2), (p3, p4)) =>
-        Seq(Face(p1, p3, p4), polyhedron.Face(p1, p4, p2))
+        Seq(Face(p1, p3, p2), polyhedron.Face(p2, p3, p4))
       }).flatten
     }).flatten
 
