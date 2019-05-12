@@ -4,10 +4,10 @@ import java.lang.Math.{cos, max, min, sqrt}
 
 import ch.feuermurmel.nutsandbolts.util.MathUtil.{mod, tau}
 
-case class Surface(fn: Surface.Parameter => Double) {
-  def apply(coord: Surface.Parameter): Double = fn(coord)
+case class Surface(fn: Parameter => Double) {
+  def apply(coord: Parameter): Double = fn(coord)
 
-  def apply(z: Double, c: Double): Double = this(Surface.Parameter(z, c))
+  def apply(z: Double, c: Double): Double = this(Parameter(z, c))
 
   def rotate(aOffset: Double) = Surface(p => this(p.z, p.c - aOffset))
 
@@ -26,14 +26,6 @@ case class Surface(fn: Surface.Parameter => Double) {
 }
 
 object Surface {
-  /**
-    * Represents a point in the coordinate system over which surfaces are parameterized.
-    *
-    * @param z The offset along the z-axis.
-    * @param c The rotation around the z-axis.
-    */
-  case class Parameter(z: Double, c: Double)
-
   def select(getSurface: Parameter => Surface) =
     Surface(p => getSurface(p)(p))
 
