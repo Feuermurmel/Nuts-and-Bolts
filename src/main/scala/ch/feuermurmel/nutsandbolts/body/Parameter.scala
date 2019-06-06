@@ -1,4 +1,4 @@
-package ch.feuermurmel.nutsandbolts.surface
+package ch.feuermurmel.nutsandbolts.body
 
 /**
   * Represents a point in the coordinate system over which surfaces are parameterized.

@@ -1,7 +1,7 @@
 package ch.feuermurmel.nutsandbolts.part
 
-import ch.feuermurmel.nutsandbolts.surface.Surface
-import ch.feuermurmel.nutsandbolts.surface.Surface.cone
+import ch.feuermurmel.nutsandbolts.body.Surface
+import ch.feuermurmel.nutsandbolts.body.Surface.cone
 
 /**
   * Operation applied to the faces of a surface (planes perpendicular to the z-axes by which a sliced surface is limited).

@@ -7,7 +7,7 @@ import ch.feuermurmel.nutsandbolts.util.AutoCloseableUtil.withCloseable
 
 object PathUtil {
   def usingTemporaryFile(path: Path)(block: Path => Unit): Unit = {
-    val parentDir = path.getParent
+    val parentDir = path.toAbsolutePath.getParent
     val tempPath = parentDir.resolve(path.getFileName.toString + "~")
 
     Files.createDirectories(parentDir)

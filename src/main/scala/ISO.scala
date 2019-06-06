@@ -1,8 +1,8 @@
 import java.lang.Math.sqrt
 
+import ch.feuermurmel.nutsandbolts.body.Surface
+import ch.feuermurmel.nutsandbolts.body.Surface.{coneSegment, regularPolygon, repeatedSurface, skewedSurface}
 import ch.feuermurmel.nutsandbolts.part.{BoltHead, Facing, Thread}
-import ch.feuermurmel.nutsandbolts.surface.Surface
-import ch.feuermurmel.nutsandbolts.surface.Surface.{coneSegment, regularPolygon, repeatedSurface, skewedSurface}
 
 object ISO {
   def isoThread(size: Double, pitch: Double) = {

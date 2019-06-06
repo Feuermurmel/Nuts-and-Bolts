@@ -1,6 +1,6 @@
 package ch.feuermurmel.nutsandbolts.part
 
-import ch.feuermurmel.nutsandbolts.surface.Surface
+import ch.feuermurmel.nutsandbolts.body.Surface
 
 trait BoltHead {
   def surface: Surface

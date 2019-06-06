@@ -1,6 +1,6 @@
+import ch.feuermurmel.nutsandbolts.body.Surface.{cylinder, sphere}
 import ch.feuermurmel.nutsandbolts.knurl.{Knurl, KnurlMode, KnurlPattern, KnurlShape}
 import ch.feuermurmel.nutsandbolts.part.{BoltHead, Facing}
-import ch.feuermurmel.nutsandbolts.surface.Surface.{cylinder, sphere}
 import ch.feuermurmel.nutsandbolts.util.MathUtil.tau
 
 object Stuff {
