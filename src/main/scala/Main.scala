@@ -1,6 +1,8 @@
 import java.nio.file.Paths
 
-import ch.feuermurmel.nutsandbolts.body.{Body, RectangularBody}
+import ch.feuermurmel.nutsandbolts.body.{Body, CylindricalBody, Interval, Ray, RectangularBody, Surface}
+import ch.feuermurmel.nutsandbolts.part.nut
+import ch.feuermurmel.nutsandbolts.util.MathUtil.tau
 
 object Main extends App {
   case class Screw(size: Double, pitch: Double, headSize: Double)
@@ -20,20 +22,20 @@ object Main extends App {
 
     println(s"Writing $path ...")
 
-    val polyhedron = part.toPolyhedron(0.5)
+    val polyhedron = part.toPolyhedron(0.1)
 
     polyhedron.writeToSTLFile(path)
 
     println(s"Wrote ${polyhedron.faces.size} faces.")
   }
 
-//  def writeNutAndScrew(name: String, screw: Screw, screwLength: Double): Unit = {
-//    val thread = ISO.isoThread(screw.size, screw.pitch)
-//    val head = ISO.isoBoltHead(screw.headSize)
-//
-//    writePart(nut(thread, head), s"$name-nut")
+  def writeNutAndScrew(name: String, screw: Screw, screwLength: Double): Unit = {
+    val thread = ISO.isoThread(screw.size, screw.pitch)
+    val head = ISO.isoBoltHead(screw.headSize)
+
+    writePart(nut(thread, head), s"$name-nut")
 //    writePart(simpleBolt(thread, head, screwLength), s"$name-screw")
-//  }
+  }
 
 //  def writeKnurledRingNut(name: String, screw: Screw): Unit = {
 //    val thread = ISO.isoThread(screw.size, screw.pitch)
@@ -52,8 +54,8 @@ object Main extends App {
 //    writeNutAndScrew("M5", Screw(5, 0.8, 8), 11)
 //    writeNutAndScrew("M6", Screw(6, 1, 10), 12)
 //    writeNutAndScrew("M8", Screw(8, 1.25, 13), 16)
-//
-//    writeNutAndScrew("M10", Screw(10, 1.5, 16), 20)
+
+    writeNutAndScrew("M10", Screw(10, 1.5, 16), 20)
 //    writeKnurledRingNut("M10", Screw(10, 1.5, 16))
 //
 //    writeNutAndScrew("M20", Screw(20, 2.5, 30), 40)
