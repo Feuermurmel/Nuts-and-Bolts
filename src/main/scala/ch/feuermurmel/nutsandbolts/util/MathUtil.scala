@@ -9,7 +9,11 @@ object MathUtil {
 
   val goldenAngle = tau / (1 + phi)
 
-  def mod(x: Double, modulus: Double) = x - (x / modulus).floor * modulus
+  def mod(x: Double, modulus: Double) = {
+    val a = x / modulus
+
+    (a - a.floor) * modulus
+  }
 
   def isFinite(x: Double): Boolean = !x.isInfinite && !x.isNaN
 
