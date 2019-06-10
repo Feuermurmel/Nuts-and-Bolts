@@ -1,7 +1,7 @@
 package ch.feuermurmel.nutsandbolts.knurl
 
-import ch.feuermurmel.nutsandbolts.body.Surface
 import ch.feuermurmel.nutsandbolts.body.Surface.{coneSegment, repeatedSurface, reverseSurface, skewedSurface}
+import ch.feuermurmel.nutsandbolts.body.{Parameter, Surface}
 
 case class Knurl(pattern: KnurlPattern, shape: KnurlShape, mode: KnurlMode) {
   val pitch = pattern.advance / pattern.ridges
@@ -33,19 +33,20 @@ case class Knurl(pattern: KnurlPattern, shape: KnurlShape, mode: KnurlMode) {
       pattern.advance)
   }
 
-  def applyToSurface(surface: Surface) = {
+  private val knurlSurface = {
     val right = getSurface
     val left = reverseSurface(getSurface)
 
-    val knurlSurface = mode match {
+    mode match {
       case KnurlMode.Left => left
       case KnurlMode.Right => right
       case KnurlMode.BothAdditive => left | right
       case KnurlMode.BothSubtractive => left & right
     }
-
-    // TODO: Maybe just knurl the outer surface here?
-    // TODO: Represent knurl surface by type that does not allow arbitrary rays
-    Surface(p => surface(p).shift(knurlSurface(p).hull.get.end))
   }
+
+  // TODO: Maybe just knurl the outermost surface here?
+  // TODO: Represent knurl surface by type that does not allow arbitrary rays
+  def applyToSurface(surface: Surface) =
+    Surface(p => surface(p).shift(knurlSurface(p).hull.get.end))
 }
