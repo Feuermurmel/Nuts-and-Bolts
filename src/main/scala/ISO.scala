@@ -6,7 +6,7 @@ import ch.feuermurmel.nutsandbolts.part.{BoltHead, Facing, Thread}
 
 object ISO {
   def isoThread(size: Double, pitch: Double) = {
-    val tolerance = 0.2
+    val tolerance = 0.3
 
     // Chamfer used to taper the end of the screw into a circle on tip of the screw and near the head.
     val threadChamfer = pitch
