@@ -30,15 +30,23 @@ case class Surface(fn: Parameter => Ray) {
 }
 
 object Surface {
-  def fromZero(fn: Parameter => Double) =
+  private def upTo(fn: Parameter => Double) =
     Surface({ p =>
       val end = fn(p)
 
-      if (end > 0)
-        Ray(Seq(Interval(0, end)))
+      if (end > Double.NegativeInfinity)
+        Ray(Double.NegativeInfinity, end)
       else
         Ray.empty
     })
+
+  val empty = Surface(_ => Ray.empty)
+
+  def intersection(surfaces: Seq[Surface]) =
+    surfaces.reduceOption(_ & _).getOrElse(!Surface.empty)
+
+  def union(surfaces: Seq[Surface]) =
+    surfaces.reduceOption(_ | _).getOrElse(Surface.empty)
 
   def select(getSurface: Parameter => Surface) =
     Surface(p => getSurface(p)(p))
@@ -52,20 +60,25 @@ object Surface {
       pieces.collectFirst({ case (s, z) if p.z < z => s }).getOrElse(pieces.head._1)
     })
 
+  // TODO: Move to CylindricalBody.
   def cone(z0: Double, r0: Double, slope: Double) =
-    fromZero(p => r0 + (p.z - z0) * slope)
+    upTo(p => r0 + (p.z - z0) * slope)
 
+  // TODO: Move to CylindricalBody.
   def coneSegment(z1: Double, z2: Double, r1: Double, r2: Double) =
     cone(z1, r1, (r2 - r1) / (z2 - z1))
 
+  // TODO: Move to CylindricalBody.
   def cylinder(r: Double) =
     cone(0, r, 0)
 
+  // TODO: Move to CylindricalBody.
   def sphere(r: Double) =
-    fromZero(p => sqrt(r * r - p.z * p.z))
+    upTo(p => sqrt(r * r - p.z * p.z))
 
+  // TODO: Move to CylindricalBody.
   def plane(distance: Double) =
-    fromZero({ p =>
+    upTo({ p =>
       val c = cos(p.c)
 
       if (c > 0)
@@ -80,6 +93,7 @@ object Surface {
   def skewedSurface(surface: Surface, zShift: Double) =
     Surface(p => surface(p.z - p.c / tau * zShift, p.c))
 
+  // TODO: Move to CylindricalBody.
   def regularPolygon(sides: Int, innerRadius: Double) =
     (0 until sides).map(i => plane(innerRadius).rotate(tau * i / sides)).reduce(_ & _)
 

@@ -48,3 +48,73 @@ case class CylindricalBody(surface: Surface, start: Double, end: Double) extends
     Body.constructPolyhedron[Parameter](cRange.size, zRange.size, combineIndex, surface(_), pointOnRay, wrapI = true)
   }
 }
+
+object CylindricalBody {
+  /**
+    * Half-plane with a border with the specified distance from the origin.
+    */
+  private def halfPlane(c0: Double, distance: Double)(c: Double) = {
+    val unitValue = cos(c - c0)
+
+    if (distance > 0)
+      if (unitValue > 0)
+        Ray(0, distance / unitValue)
+      else
+        Ray(0, Double.PositiveInfinity)
+    else
+      if (unitValue > 0)
+        Ray.empty
+      else
+        Ray(distance / unitValue, Double.PositiveInfinity)
+  }
+
+  private def disc(c0: Double, distance: Double, r: Double)(c: Double) = {
+    val v = distance * cos(c - c0)
+    val q = sqrt(v * v + r * r - distance * distance)
+
+    val start = v - q
+    val end = v + q
+
+    if (start < end)
+      Ray(start, end)
+    else
+      Ray.empty
+  }
+
+  def halfSpace(c0: Double, distance: Double) =
+    Surface(p => halfPlane(c0, distance)(p.c))
+
+  def horizontalCylinder(z0: Double, c0: Double, distance: Double, r: Double) =
+    Surface({ p =>
+      val z = p.z - z0
+      val sliceRadius = sqrt(r * r - z * z)
+
+      val outerDistance = distance + sliceRadius
+      val innerDistance = distance - sliceRadius
+
+      if (innerDistance < outerDistance)
+        halfPlane(c0, outerDistance)(p.c) / halfPlane(c0, innerDistance)(p.c)
+      else
+        Ray.empty
+    })
+
+  def verticalCylinder(c0: Double, distance: Double, r: Double) =
+    Surface(p => disc(c0, distance, r)(p.c))
+
+  def horizontalTorus(z0: Double, c0: Double, distance: Double, r1: Double, r2: Double) =
+    Surface({ p =>
+      val z = p.z - z0
+      val radiusOffset = sqrt(r2 * r2 - z * z)
+
+      val outerRadius = r1 + radiusOffset
+      val innerRadius = r1 - radiusOffset
+
+      if (innerRadius < outerRadius)
+        disc(c0, distance, outerRadius)(p.c) / disc(c0, distance, innerRadius)(p.c)
+      else
+        Ray.empty
+    })
+
+  def blubb =
+    Surface(p => halfPlane(0, p.z)(p.c))
+}
