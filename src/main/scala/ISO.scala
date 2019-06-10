@@ -38,8 +38,8 @@ object ISO {
     val threadSurface = skewedSurface(repeatedSurface(threadShape, pitch), pitch)
 
     new Thread {
-      override def outwardSurface = threadSurface.grow(-tolerance / 2)
-      override def inwardSurface = threadSurface.grow(tolerance / 2)
+      override def outwardSurface = threadSurface
+      override def inwardSurface = threadSurface.grow(tolerance)
       override def maleCutoffFacing = Facing.outsideChamfer(majorRadius - threadChamfer)
       override def maleGraftFacing = Facing.insideChamfer(majorRadius)
       override def femaleCutoffFacing = Facing.insideChamfer(majorRadius + nutThreadChamfer)
