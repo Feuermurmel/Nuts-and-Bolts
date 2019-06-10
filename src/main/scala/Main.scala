@@ -5,32 +5,6 @@ import ch.feuermurmel.nutsandbolts.part.{nut, simpleBolt}
 import ch.feuermurmel.nutsandbolts.util.MathUtil.tau
 
 object Main extends App {
-  case class Screw(size: Double, pitch: Double, headSize: Double) {
-    def thread = ISO.isoThread(size, pitch)
-    def head = ISO.isoBoltHead(headSize)
-  }
-
-  case class NutAndScrew(screw: Screw, screwLength: Double) {
-    def nutBody = nut(screw.thread, screw.head)
-    def simpleBoltBody = simpleBolt(screw.thread, screw.head, screwLength)
-  }
-
-  case class Washer(innerDiameter: Double, outerDiameter: Double, thickness: Double) {
-    def body = {
-      val outerCylinder = CylindricalBody.verticalCylinder(0, 0, outerDiameter / 2)
-      val innerCylinder = CylindricalBody.verticalCylinder(0, 0, innerDiameter / 2)
-
-      CylindricalBody(outerCylinder / innerCylinder, 0, thickness)
-    }
-  }
-
-  def addHorizontalHoleAtTop(body: CylindricalBody, distanceFromTop: Double, diameter: Double) = {
-    val z = body.end - distanceFromTop
-    val hole = CylindricalBody.horizontalCylinder(z, 0, 0, diameter / 2)
-
-    body.copy(body.surface / hole)
-  }
-
   val outputPath = Paths.get("output")
 
   val resolution = 0.1
@@ -48,7 +22,17 @@ object Main extends App {
   }
 
   val parts = {
-    // TODO: Clean up this mess.
+    case class Screw(size: Double, pitch: Double, headSize: Double)
+
+    case class Washer(innerDiameter: Double, outerDiameter: Double, thickness: Double)
+
+    def addHorizontalHoleAtTop(body: CylindricalBody, distanceFromTop: Double, diameter: Double) = {
+      val z = body.end - distanceFromTop
+      val hole = CylindricalBody.horizontalCylinder(z, 0, 0, diameter / 2)
+
+      body.copy(body.surface / hole)
+    }
+
     val screwSizes =
       Seq(
         (Screw(6, 1, 10), Washer(6.4, 12, 1.6)),
@@ -71,7 +55,9 @@ object Main extends App {
       Part("bolt", "M l hole") { arguments =>
         val screw = findSize(arguments.get("M"))._1
         val length = arguments.get("l", 10)
-        var body = NutAndScrew(screw, length).simpleBoltBody
+        val thread = ISO.isoThread(screw.size, screw.pitch)
+        val head = ISO.isoBoltHead(screw.headSize)
+        var body = simpleBolt(thread, head, length)
 
         if (arguments.getBoolean("hole"))
           body = addHorizontalHoleAtTop(body, 4.5, 4)
@@ -80,28 +66,31 @@ object Main extends App {
       },
       Part("nut", "M flat round") { arguments =>
         val screw = findSize(arguments.get("M"))._1
+        val thread = ISO.isoThread(screw.size, screw.pitch)
+
         val flat = arguments.getBoolean("flat")
         val round = arguments.getBoolean("round")
 
-        if (flat) {
+        val head = if (flat) {
           if (round)
             throw new Exception("Cannot combine options flat and round.")
 
-          val thread = ISO.isoThread(screw.size, screw.pitch)
-          val head = Stuff.knurledRingNut(screw.headSize * 3 / 2)
-
-          nut(thread, head)
+          Stuff.knurledRingNut(screw.headSize * 3 / 2)
         } else if (round) {
-          val thread = ISO.isoThread(screw.size, screw.pitch)
-          val head = Stuff.knurledRoundedRingNut(screw.headSize * 3 / 2, screw.headSize * 4 / 8)
-
-          nut(thread, head)
+          Stuff.knurledRoundedRingNut(screw.headSize * 3 / 2, screw.headSize * 4 / 8)
         } else {
-          NutAndScrew(screw, 0).nutBody
+          ISO.isoBoltHead(screw.headSize)
         }
+
+        nut(thread, head)
       },
       Part("washer", "M") { arguments =>
-        findSize(arguments.get("M"))._2.body
+        val washer = findSize(arguments.get("M"))._2
+        val outerCylinder = CylindricalBody.verticalCylinder(0, 0, washer.outerDiameter / 2)
+        val innerCylinder = CylindricalBody.verticalCylinder(0, 0, washer.innerDiameter / 2)
+        val surface = outerCylinder / innerCylinder
+
+        CylindricalBody(surface, 0, washer.thickness)
       })
   }
 
