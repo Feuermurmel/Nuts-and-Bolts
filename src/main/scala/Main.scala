@@ -16,11 +16,9 @@ object Main extends App {
   }
 
   case class Washer(innerDiameter: Double, outerDiameter: Double, thickness: Double) {
-    val tolerance = 0.2
-
     def body = {
       val outerCylinder = CylindricalBody.verticalCylinder(0, 0, outerDiameter / 2)
-      val innerCylinder = CylindricalBody.verticalCylinder(0, 0, innerDiameter / 2 + tolerance / 2)
+      val innerCylinder = CylindricalBody.verticalCylinder(0, 0, innerDiameter / 2)
 
       CylindricalBody(outerCylinder / innerCylinder, 0, thickness)
     }
