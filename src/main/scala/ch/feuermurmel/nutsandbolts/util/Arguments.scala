@@ -2,6 +2,8 @@ package ch.feuermurmel.nutsandbolts.util
 
 case class Arguments(argumentNames: Seq[String], args: Seq[String]) {
   private val valuesStrByName = {
+    require(argumentNames.distinct == argumentNames)
+
     val argumentPattern = "([a-zA-Z]+)(.*)".r
 
     args
