@@ -84,11 +84,18 @@ object Main extends App {
 
         nut(thread, head)
       },
-      Part("washer", "M") { arguments =>
+      Part("washer", "M hex") { arguments =>
         val washer = findSize(arguments.get("M"))._2
-        val outerCylinder = CylindricalBody.verticalCylinder(0, 0, washer.outerDiameter / 2)
-        val innerCylinder = CylindricalBody.verticalCylinder(0, 0, washer.innerDiameter / 2)
-        val surface = outerCylinder / innerCylinder
+
+        val outerSurface =
+          if (arguments.getBoolean("hex"))
+            ISO.isoBoltHead(washer.outerDiameter).surface
+          else
+            CylindricalBody.verticalCylinder(0, 0, washer.outerDiameter / 2)
+
+        val innerSurface = CylindricalBody.verticalCylinder(0, 0, washer.innerDiameter / 2)
+
+        val surface = outerSurface / innerSurface
 
         CylindricalBody(surface, 0, washer.thickness)
       })
