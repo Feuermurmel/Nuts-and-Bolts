@@ -82,7 +82,7 @@ object Main extends App {
 
         nut(thread, head)
       },
-      Part.define("washer", "M hex") { arguments =>
+      Part.define("washer", "M hex slot") { arguments =>
         val washer = findSize(arguments.get("M"))._2
 
         val outerSurface =
@@ -93,7 +93,16 @@ object Main extends App {
 
         val innerSurface = CylindricalBody.verticalCylinder(0, 0, washer.innerDiameter / 2)
 
-        val surface = outerSurface / innerSurface
+        var surface = outerSurface / innerSurface
+
+        if (arguments.getBoolean("slot")) {
+          val cutSurface = (
+            CylindricalBody.halfSpace(tau / 2, 0)
+              & CylindricalBody.halfSpace(-tau / 4, washer.thickness / 2)
+              & CylindricalBody.halfSpace(tau / 4, washer.thickness / 2))
+
+          surface /= cutSurface
+        }
 
         CylindricalBody(surface, 0, washer.thickness)
       })
