@@ -7,21 +7,19 @@ import ch.feuermurmel.nutsandbolts.util.MathUtil.tau
 object Main extends App {
   val outputPath = Paths.get("output")
 
-  val resolution = 0.1
-
-  def writeBody(part: Body, fileBaseName: String): Unit = {
-    val path = outputPath.resolve(s"$fileBaseName.stl")
+  def writePart(part: Part): Unit = {
+    val path = outputPath.resolve(s"${part.fileBaseName}.stl")
 
     println(s"Writing $path ...")
 
-    val polyhedron = part.toPolyhedron(resolution)
+    val polyhedron = part.body.toPolyhedron(part.resolution)
 
     polyhedron.writeToSTLFile(path)
 
     println(s"Wrote ${polyhedron.faces.size} faces.")
   }
 
-  val parts = {
+  val partDefs = {
     case class Screw(size: Double, pitch: Double, headSize: Double)
 
     case class Washer(innerDiameter: Double, outerDiameter: Double, thickness: Double)
@@ -52,7 +50,7 @@ object Main extends App {
         throw new Exception(s"Unsupported screw size: $size"))
 
     Seq(
-      Part("bolt", "M l hole") { arguments =>
+      Part.define("bolt", "M l hole") { arguments =>
         val screw = findSize(arguments.get("M"))._1
         val length = arguments.get("l", 10)
         val thread = ISO.isoThread(screw.size, screw.pitch)
@@ -64,7 +62,7 @@ object Main extends App {
 
         body
       },
-      Part("nut", "M flat round") { arguments =>
+      Part.define("nut", "M flat round") { arguments =>
         val screw = findSize(arguments.get("M"))._1
         val thread = ISO.isoThread(screw.size, screw.pitch)
 
@@ -84,7 +82,7 @@ object Main extends App {
 
         nut(thread, head)
       },
-      Part("washer", "M hex") { arguments =>
+      Part.define("washer", "M hex") { arguments =>
         val washer = findSize(arguments.get("M"))._2
 
         val outerSurface =
@@ -101,11 +99,7 @@ object Main extends App {
       })
   }
 
-  def main(): Unit = {
-    val (body, fileBaseName) = Part.run(parts, args)
-
-    writeBody(body, fileBaseName)
-  }
+  def main(): Unit = writePart(Part.run(partDefs, args))
 
   main()
 }

@@ -1,13 +1,15 @@
 import ch.feuermurmel.nutsandbolts.body.Body
 import ch.feuermurmel.nutsandbolts.util.Arguments
 
-case class Part(name: String, argumentNames: Seq[String], createBody: Arguments => Body)
+case class Part(body: Body, resolution: Double, fileBaseName: String)
 
 object Part {
-  def apply(name: String, argumentNamesStr: String)(createBody: Arguments => Body): Part =
-    Part(name, argumentNamesStr.split(" "), createBody)
+  case class Def(name: String, argumentNames: Seq[String], createBody: Arguments => Body)
 
-  def run(parts: Seq[Part], args: Seq[String]) =
+  def define(name: String, argumentNamesStr: String)(createBody: Arguments => Body): Def =
+    Def(name, argumentNamesStr.split(" ") :+ "res", createBody)
+
+  def run(parts: Seq[Def], args: Seq[String]) =
     args match {
       case Seq() =>
         throw new Exception("No part name specified.")
@@ -20,6 +22,9 @@ object Part {
         val argumentNameParts = part.argumentNames
           .flatMap(x => arguments.getStringList(x).map(x + _))
 
-        (part.createBody(arguments), (partName +: argumentNameParts).mkString("-"))
+        Part(
+          body = part.createBody(arguments),
+          resolution = arguments.get("res", 0.1),
+          fileBaseName = (partName +: argumentNameParts).mkString("-"))
     }
 }
