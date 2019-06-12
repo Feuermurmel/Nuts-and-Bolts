@@ -1,15 +1,13 @@
 package ch.feuermurmel.nutsandbolts.util
 
-case class Arguments(argumentNames: Seq[String], args: Seq[String]) {
+case class Arguments(argumentDef: Arguments.Def, args: Seq[String]) {
   private val valuesStrByName = {
-    require(argumentNames.distinct == argumentNames)
-
     val argumentPattern = "([a-zA-Z]+)(.*)".r
 
     args
       .map({ case argumentPattern(name, valueStr) =>
-        if (!argumentNames.contains(name))
-          throw new Exception(s"Unknown argument: $name")
+        if (!argumentDef.argumentNames.contains(name))
+          throw new Arguments.UsageError(s"Unknown argument $name specified.")
 
         name -> valueStr
       })
@@ -18,7 +16,7 @@ case class Arguments(argumentNames: Seq[String], args: Seq[String]) {
   }
 
   private def readList[A](name: String, decode: String => A) = {
-    require(argumentNames.contains(name), s"$name")
+    require(argumentDef.argumentNames.contains(name), s"$name")
 
     valuesStrByName.getOrElse(name, Seq()).map(decode)
   }
@@ -30,14 +28,14 @@ case class Arguments(argumentNames: Seq[String], args: Seq[String]) {
       case Seq(value) =>
         Some(value)
       case _ =>
-        throw new Exception(s"Parameter specified multiple times: $name")
+        throw new Arguments.UsageError(s"Parameter $name specified multiple times.")
     }
 
   private def read[A](name: String, decode: String => A, default: => A): A =
     readOption(name, decode).getOrElse(default)
 
   private def read[A](name: String, decode: String => A): A =
-    read(name, decode, throw new Exception(s"Missing parameter: $name"))
+    read(name, decode, throw new Arguments.UsageError(s"Missing parameter $name."))
 
   def getStringList(name: String) =
     readList(name, identity)
@@ -59,8 +57,24 @@ case class Arguments(argumentNames: Seq[String], args: Seq[String]) {
       case Some("") =>
         true
       case Some(_) =>
-        throw new Exception(s"No value expected for parameter $name.")
+        throw new Arguments.UsageError(s"No value expected for parameter $name.")
       case None =>
         false
     }
+}
+
+object Arguments {
+  case class Def(argumentNames: Seq[String]) {
+    require(argumentNames.distinct == argumentNames)
+
+    def runWithArgs[R](args: Seq[String])(block: Arguments => R) =
+      try {
+        block(Arguments(this, args))
+      } catch {
+        case e: UsageError =>
+          throw new UserError(s"${e.getMessage} Available arguments are ${argumentNames.mkString(", ")}.")
+      }
+  }
+
+  class UsageError(message: String) extends Exception(message)
 }
