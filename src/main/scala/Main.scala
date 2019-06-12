@@ -3,6 +3,7 @@ import java.nio.file.Paths
 import ch.feuermurmel.nutsandbolts.body.{Body, CylindricalBody}
 import ch.feuermurmel.nutsandbolts.part.{nut, simpleBolt}
 import ch.feuermurmel.nutsandbolts.util.MathUtil.tau
+import ch.feuermurmel.nutsandbolts.util.UserError
 
 object Main extends App {
   val outputPath = Paths.get("output")
@@ -47,7 +48,7 @@ object Main extends App {
 
     def findSize(size: Double) =
       screwSizes.find(_._1.size == size).getOrElse(
-        throw new Exception(s"Unsupported screw size: $size"))
+        throw new UserError(s"Unsupported screw size: $size"))
 
     Seq(
       Part.define("bolt", "M l hole") { arguments =>
@@ -73,7 +74,7 @@ object Main extends App {
 
         val head = if (flat) {
           if (round)
-            throw new Exception("Cannot combine options flat and round.")
+            throw new UserError("Cannot combine options flat and round.")
 
           Stuff.knurledRingNut(headSize)
         } else if (round) {
@@ -110,7 +111,10 @@ object Main extends App {
       })
   }
 
-  def main(): Unit = writePart(Part.run(partDefs, args))
+  def main(): Unit =
+    UserError.catching {
+      writePart(Part.run(partDefs, args))
+    }
 
   main()
 }
