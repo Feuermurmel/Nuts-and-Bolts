@@ -62,9 +62,11 @@ object Main extends App {
 
         body
       },
-      Part.define("nut", "M flat round") { arguments =>
+      Part.define("nut", "M N flat round") { arguments =>
         val screw = findSize(arguments.get("M"))._1
         val thread = ISO.isoThread(screw.size, screw.pitch)
+
+        val headSize = arguments.get("N", screw.headSize)
 
         val flat = arguments.getBoolean("flat")
         val round = arguments.getBoolean("round")
@@ -73,11 +75,11 @@ object Main extends App {
           if (round)
             throw new Exception("Cannot combine options flat and round.")
 
-          Stuff.knurledRingNut(screw.headSize * 3 / 2)
+          Stuff.knurledRingNut(headSize)
         } else if (round) {
-          Stuff.knurledRoundedRingNut(screw.headSize * 3 / 2, screw.headSize * 4 / 8)
+          Stuff.knurledRoundedRingNut(screw.headSize * 3 / 2, headSize)
         } else {
-          ISO.isoBoltHead(screw.headSize)
+          ISO.isoBoltHead(headSize)
         }
 
         nut(thread, head)
