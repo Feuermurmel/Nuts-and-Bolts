@@ -1,7 +1,7 @@
 package ch.feuermurmel.nutsandbolts.knurl
 
+import ch.feuermurmel.nutsandbolts.body.Surface
 import ch.feuermurmel.nutsandbolts.body.Surface.{coneSegment, repeatedSurface, reverseSurface, skewedSurface}
-import ch.feuermurmel.nutsandbolts.body.{Parameter, Surface}
 
 case class Knurl(pattern: KnurlPattern, shape: KnurlShape, mode: KnurlMode) {
   val pitch = pattern.advance / pattern.ridges

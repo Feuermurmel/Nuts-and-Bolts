@@ -1,9 +1,9 @@
 import java.nio.file.Paths
 
-import ch.feuermurmel.nutsandbolts.body.{Body, CylindricalBody}
+import ch.feuermurmel.nutsandbolts.body.CylindricalBody
 import ch.feuermurmel.nutsandbolts.part.{nut, simpleBolt}
 import ch.feuermurmel.nutsandbolts.util.MathUtil.tau
-import ch.feuermurmel.nutsandbolts.util.UserError
+import ch.feuermurmel.nutsandbolts.util.{Part, UserError}
 
 object Main extends App {
   val outputPath = Paths.get("output")

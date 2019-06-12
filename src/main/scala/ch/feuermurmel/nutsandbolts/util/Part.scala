@@ -1,5 +1,6 @@
+package ch.feuermurmel.nutsandbolts.util
+
 import ch.feuermurmel.nutsandbolts.body.Body
-import ch.feuermurmel.nutsandbolts.util.{Arguments, UserError}
 
 case class Part(body: Body, resolution: Double, fileBaseName: String)
 
